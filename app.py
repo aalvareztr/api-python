@@ -1,5 +1,6 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, render_template
 from selenium import webdriver
+from flask_cors import CORS
 #from selenium.webdriver.chrome.service import Service
 #from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
@@ -8,8 +9,25 @@ from selenium.common.exceptions import NoSuchElementException
 #from webdriver_manager.chrome import ChromeDriverManager
 import math
 import time
+from flask_swagger_ui import get_swaggerui_blueprint
+import sys
+from pathlib import Path
+
 
 app = Flask(__name__)
+
+CORS(app)
+
+SWAGGER_URL="/swagger"
+API_URL="/static/swagger.json"
+
+swagger_ui_blueprint = get_swaggerui_blueprint(
+    SWAGGER_URL,
+    API_URL,
+    config={
+        'app_name': 'Access API'
+    }
+)
 
 
 chrome_options = webdriver.ChromeOptions()
@@ -18,9 +36,6 @@ chrome_options.add_argument("--headless")
 chrome_options.add_argument("--disable-gpu")
 
 driver = webdriver.Chrome(options=chrome_options)
-
-
-
 
 
 def getData(rut):
@@ -214,25 +229,23 @@ def getData(rut):
     except NoSuchElementException:
         print('no hay')
 
-
-    #print({"facturas_de_venta":{"promedio":promedio_facturas_de_venta,"promedio_redondeado":promedio_facturas_de_venta_redondeado},"faturas_de_compra":{"promedio":promedio_facturas_de_compra,"promedio_redondeado":promedio_facturas_de_compra_redondeado},"boletas_recibidas":{"promedio":promedio_boletas_anuales,"promedio_redondeado":promedio_boletas_anuales_redondeado}})
     return{"facturas_de_venta":{"promedio":promedio_facturas_de_venta,"promedio_redondeado":promedio_facturas_de_venta_redondeado},"faturas_de_compra":{"promedio":promedio_facturas_de_compra,"promedio_redondeado":promedio_facturas_de_compra_redondeado},"boletas_recibidas":{"promedio":promedio_boletas_anuales_recibidas,"promedio_redondeado":promedio_boletas_anuales_recibidas_redondeado},"boletas_emitidas":{"promedio":promedio_boletas_anuales_emitidas,"promedio_redondeado":promedio_boletas_anuales_emitidas_redondeado}}
 
 
 
 @app.route('/')
 def index():
-    return 'Hola Asesor'
+    return render_template("index.html")
 
 
 
 @app.route('/api/facturacion', methods=['POST'])
 def scraping_facturas():
+
     datos = request.json
     rut = datos["rut"]
     password = datos["password"]
 
-    #driver = iniciar_chrome()
     driver.get("https://zeusr.sii.cl//AUT2000/InicioAutenticacion/IngresoRutClave.html?https://misiir.sii.cl/cgi_misii/siihome.cgi")
     try:
 
@@ -314,8 +327,14 @@ def scraping_facturas():
                         modal = driver.find_element(By.CSS_SELECTOR, 'div.modal-dialog')
 
                         if modal:
+                            #Si no hay modal entonces no hace nada, simplemente lo pasa 
                             # Si hay un modal, hacer clic en el botón de cierre
+
+                            #Aca va la otra parte:
                             btn_cierre_modal = driver.find_element(By.XPATH, '//*[@id="ModalEmergente"]/div/div/div[3]/button')
+
+                            #Boton de cierre de modal
+                            
                             btn_cierre_modal.click()
                     except:
                         pass
@@ -343,6 +362,35 @@ def scraping_facturas():
         print (e)
         return jsonify({"error": "Error en el proceso de obtención de datos de facturación"}), 500
 
+
+
+
+
+app.register_blueprint(swagger_ui_blueprint, url_prefix=SWAGGER_URL)
+
+
+#Rutas
+#Rutas disponibles:
+#Rutas de boletas:
+"""
+    {
+        nombre_de_cliente: "" (string),
+        cantidad_de_boletas: (integer),
+        boletas_de_venta: {
+            promedio: (int),
+            promedio_redondeado: (float)
+        },
+        boletas_de_compra: {
+            promedio: (int),
+            promedio_redondeado: (float)
+        }
+    }
+"""
+
+#----------------
+
+
+from routes.routes1 import *
 
 
 if __name__ == "__main__":

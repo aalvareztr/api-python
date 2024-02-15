@@ -1,0 +1,109 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Facturacion API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/": {
+      "get": {
+        "description": "Returns message showing app is up",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          }
+        }
+      }
+    },
+    "/api/facturacion": {
+      "post": {
+        "description": "Process invoice data and retrieve statistics",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "invoice_data",
+            "in": "body",
+            "description": "JSON data for invoice processing",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "rut": {
+                  "type": "string"
+                },
+                "password": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "facturas_de_venta": {
+                  "type": "object",
+                  "properties": {
+                    "promedio": {
+                      "type": "number"
+                    },
+                    "promedio_redondeado": {
+                      "type": "number"
+                    }
+                  }
+                },
+                "faturas_de_compra": {
+                  "type": "object",
+                  "properties": {
+                    "promedio": {
+                      "type": "number"
+                    },
+                    "promedio_redondeado": {
+                      "type": "number"
+                    }
+                  }
+                },
+                "boletas_recibidas": {
+                  "type": "object",
+                  "properties": {
+                    "promedio": {
+                      "type": "number"
+                    },
+                    "promedio_redondeado": {
+                      "type": "number"
+                    }
+                  }
+                },
+                "boletas_emitidas": {
+                  "type": "object",
+                  "properties": {
+                    "promedio": {
+                      "type": "number"
+                    },
+                    "promedio_redondeado": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request data"
+          }
+        }
+      }
+    }
+  }
+}
